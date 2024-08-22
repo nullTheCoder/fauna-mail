@@ -1,0 +1,13 @@
+repositories {
+    maven { url "https://maven.neoforged.net/" }
+}
+
+dependencies {
+    compileOnly(project(":common"))
+    
+    neoForge("net.neoforged:neoforge:${rootProject.neoforgeVersion}")
+}
+
+compileJava {
+    source(project(":common").sourceSets.main.allSource)
+}

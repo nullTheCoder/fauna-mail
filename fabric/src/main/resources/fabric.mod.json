@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "${modId}",
+  "version": "${modVersion}",
+  "name": "Fauna mail",
+  "description": "",
+  "authors": [
+    "Antarctic Gardens",
+    "ceasingbonsai17"
+  ],
+  "contact": {
+    "homepage": "https://antarcticgardens.org/",
+    "sources": "https://gitlab.com/antarcticgardens/fauna_mail",
+    "issues": "https://gitlab.com/antarcticgardens/fauna_mail/-/issues"
+  },
+  "license": "BSD-3-Clause",
+  "icon": "icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "org.antarcticgardens.faunamail.FaunaMailFabric"
+    ],
+    "client": [
+      "org.antarcticgardens.faunamail.FaunaMailFabricClient"
+    ]
+  },
+  "mixins": [
+    
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "minecraft": "~1.21.1",
+    "java": ">=17"
+  }
+}

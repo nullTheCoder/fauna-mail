@@ -1,0 +1,19 @@
+repositories {
+    maven { url = "https://maven.terraformersmc.com/" } // ModMenu
+}
+
+dependencies {
+    compileOnly(project(":common"))
+    
+    modImplementation("net.fabricmc:fabric-loader:${fabricLoaderVersion}")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:${fabricApiVersion}")
+
+    modImplementation("com.terraformersmc:modmenu:${modmenuVersion}")
+    
+    modRuntimeOnly("maven.modrinth:sodium:${sodiumVersion}")
+    modRuntimeOnly("maven.modrinth:indium:${indiumVersion}")
+}
+
+compileJava {
+    source(project(":common").sourceSets.main.allSource)
+}

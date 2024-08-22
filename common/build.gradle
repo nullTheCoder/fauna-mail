@@ -1,0 +1,7 @@
+repositories {
+    maven { url "https://maven.neoforged.net/" }
+}
+
+dependencies {
+    compileOnly("net.fabricmc:fabric-loader:0.15.11") // yes, I know this is weird, but it won't compile on neoforge otherwise
+}

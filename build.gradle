@@ -1,0 +1,71 @@
+plugins {
+    id "java"
+    id "dev.architectury.loom" version "1.7-SNAPSHOT" apply false
+}
+
+subprojects {
+    apply plugin: "java"
+    apply plugin: "dev.architectury.loom"
+    
+    group = "org.antarcticgardens"
+    version = rootProject.modVersion
+    archivesBaseName = "fauna_mail-${version}-${project.name}-${rootProject.minecraftVersion}"
+    
+    repositories {
+        mavenLocal()
+        
+        maven { url = "https://cursemaven.com" } // CurseForge maven
+        maven { url = "https://api.modrinth.com/maven" } // Modrinth maven
+        
+        maven { url = "https://maven.parchmentmc.org" } // Parchment mappings
+        
+        maven { url = "https://maven.blamejared.com/" } // JEI
+    }
+    
+    dependencies {
+        minecraft "com.mojang:minecraft:${rootProject.minecraftVersion}"
+        
+        mappings(loom.layered {
+            it.officialMojangMappings()
+            it.parchment("org.parchmentmc.data:parchment-1.21:${rootProject.parchmentVersion}@zip")
+        })
+        
+        annotationProcessor("systems.manifold:manifold-preprocessor:2024.1.29")
+        
+        if (project.name != "common") {
+            modRuntimeOnly("mezz.jei:jei-${rootProject.minecraftVersion}-${project.name}:19.8.4.116")
+        }
+    }
+    
+    if (project.name != "common") {
+        processResources {
+            from(project(":common").sourceSets.main.resources)
+            
+            filesMatching(["fabric.mod.json", "META-INF/neoforge.mods.toml"]) {
+                expand(project.properties)
+            }
+        }
+    }
+    
+    sourceSets {
+        main {
+            resources {
+                srcDirs += [
+                        'src/generated/resources'
+                ]
+            }
+        }
+    }
+    
+    jar {
+        archiveClassifier.set("dev")
+    }
+    
+    java {
+        withSourcesJar()
+    }
+    
+    tasks.withType(JavaCompile) {
+        options.compilerArgs += ['-Xplugin:Manifold']
+    }
+}
