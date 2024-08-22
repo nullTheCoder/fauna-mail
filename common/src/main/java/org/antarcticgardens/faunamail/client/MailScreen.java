@@ -34,8 +34,7 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
     private Button turn;
     private Button seal;
 
-    private EditBox text1;
-    private EditBox text2;
+    private final EditBox[] text = new EditBox[2];
     private EditBox address;
     private EditBox recipient;
 
@@ -54,49 +53,60 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
             back = !back;
             addWidgets();
             if (back) {
-                setFocused(text1);
+                this.clearFocus();
+                setFocused(text[0]);
             } else {
+                this.clearFocus();
                 setFocused(turn);
             }
         }, Component.translatable("faunamail.turn"));
 
         seal = new ImageButton(i + 11, j - 24, this.imageWidth - 11, 12, SPRITES, button -> {
+            if (address.getValue().isBlank() && recipient.getValue().isBlank()) {
+                return;
+            }
 
+            String[] text = new String[this.text.length];
+            for (int a = 0 ; a < text.length ; a++) {
+                text[a] = this.text[a].getValue();
+            }
+            PacketSender.sendSealPacket(text, address.getValue(), recipient.getValue());
         }, Component.translatable("faunamail.seal"));
 
-        this.text1 = new EditBox(this.font, i + 11, j , this.imageWidth - 22, 12, Component.translatable("faunamail.message.line.1"));
-        this.text1.setTextColor(0xffffff);
-        this.text1.setTextColorUneditable(0x999999);
-        this.text1.setMaxLength(26);
-        this.text1.setHint(Component.translatable("faunamail.message.line.1"));
+        this.text[0] = new EditBox(this.font, i + 11, j , this.imageWidth - 22, 12, Component.translatable("faunamail.message.line.1"));
+        this.text[0].setTextColor(0xffffff);
+        this.text[0].setTextColorUneditable(0x999999);
+        this.text[0].setMaxLength(24);
+        this.text[0].setHint(Component.translatable("faunamail.message.line.1"));
 
-        this.text2 = new EditBox(this.font, i + 11, j + 13, this.imageWidth - 22, 12, Component.translatable("faunamail.message.line.2"));
-        this.text2.setTextColor(0xffffff);
-        this.text2.setTextColorUneditable(0x999999);
-        this.text2.setMaxLength(26);
-        this.text2.setHint(Component.translatable("faunamail.message.line.2"));
+        this.text[1] = new EditBox(this.font, i + 11, j + 13, this.imageWidth - 22, 12, Component.translatable("faunamail.message.line.2"));
+        this.text[1].setTextColor(0xffffff);
+        this.text[1].setTextColorUneditable(0x999999);
+        this.text[1].setMaxLength(24);
+        this.text[1].setHint(Component.translatable("faunamail.message.line.2"));
 
         this.address = new EditBox(this.font, i + 25, j + 50, this.imageWidth - 11 - 25, 12, Component.translatable("faunamail.address"));
         this.address.setTextColor(0xffffff);
         this.address.setTextColorUneditable(0x999999);
-        this.address.setMaxLength(20);
+        this.address.setMaxLength(21);
         this.address.setHint(Component.translatable("faunamail.address"));
 
         this.recipient = new EditBox(this.font, i + 25, j + 63, this.imageWidth - 11 - 25, 12, Component.translatable("faunamail.player"));
         this.recipient.setTextColor(0xffffff);
         this.recipient.setTextColorUneditable(0x999999);
-        this.recipient.setMaxLength(20);
+        this.recipient.setMaxLength(21);
         this.recipient.setHint(Component.translatable("faunamail.player"));
 
-        this.setFocused(text1);
+        this.clearFocus();
+        this.setFocused(text[0]);
         addWidgets();
     }
 
     public void addWidgets() {
         clearWidgets();
         if (this.back) {
-            this.addWidget(this.text1);
-            this.addWidget(this.text2);
+            this.addWidget(this.text[0]);
+            this.addWidget(this.text[1]);
             this.addWidget(this.address);
             this.addWidget(this.recipient);
         } else {
@@ -106,21 +116,29 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
     }
 
     public void resize(Minecraft minecraft, int width, int height) {
-        String string = this.text1.getValue();
-        String string2 = this.text2.getValue();
+        String string = this.text[0].getValue();
+        String string2 = this.text[1].getValue();
         String address = this.address.getValue();
         String recipient = this.recipient.getValue();
         this.init(minecraft, width, height);
-        this.text1.setValue(string);
-        this.text2.setValue(string2);
+        this.text[0].setValue(string);
+        this.text[1].setValue(string2);
         this.address.setValue(address);
         this.recipient.setValue(recipient);
     }
 
     @Override
     public boolean shouldCloseOnEsc() {
-        if (this.text1.isFocused()) {
-            this.setFocused(seal);
+        for (EditBox editBox : text) {
+            if (editBox.isFocused()) {
+                this.clearFocus();
+                this.setFocused(this.turn);
+                return false;
+            }
+        }
+        if (this.address.isFocused() || this.recipient.isFocused()) {
+            this.clearFocus();
+            this.setFocused(this.turn);
             return false;
         }
         return true;
@@ -135,6 +153,17 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
         //context.blitSprite(menu.container.getMailItem().BG(), x, y, backgroundWidth, backgroundHeight);
     }
 
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (this.minecraft.options.keyInventory.matches(keyCode, scanCode)) {
+            if (getFocused() instanceof EditBox && back) {
+                return getFocused().keyPressed(keyCode, scanCode, modifiers);
+            }
+            return false;
+        }
+
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (!this.back) {
@@ -145,8 +174,8 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
 
             this.renderTooltip(guiGraphics, mouseX, mouseY);
         } else {
-            text1.render(guiGraphics, mouseX, mouseY, partialTick);
-            text2.render(guiGraphics, mouseX, mouseY, partialTick);
+            text[0].render(guiGraphics, mouseX, mouseY, partialTick);
+            text[1].render(guiGraphics, mouseX, mouseY, partialTick);
             address.render(guiGraphics, mouseX, mouseY, partialTick);
             recipient.render(guiGraphics, mouseX, mouseY, partialTick);
 

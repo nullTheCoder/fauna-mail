@@ -1,6 +1,8 @@
 package org.antarcticgardens.faunamail;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -18,7 +20,6 @@ import org.antarcticgardens.faunamail.items.mail.MailItem;
 import java.util.function.Supplier;
 
 public class FaunaMailFabric implements ModInitializer {
-
     @Override
     public void onInitialize() {
 
@@ -40,6 +41,11 @@ public class FaunaMailFabric implements ModInitializer {
                                     , mailItem.rows(), mailItem.columns()), FeatureFlagSet.of()
                     ));
         }
+
+        PayloadTypeRegistry.playC2S().register(SealPayload.ID, SealPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(SealPayload.ID, (payload, context) -> {
+            System.out.println("Got SealPayload " + payload);
+        });
 
     }
 }
