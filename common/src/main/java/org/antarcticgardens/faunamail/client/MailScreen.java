@@ -92,7 +92,7 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
         this.address = new EditBox(this.font, i + addr[0], j + addr[1], addr[2], addr[3], Component.translatable("faunamail.address"));
         this.address.setTextColor(0xffffff);
         this.address.setTextColorUneditable(0x999999);
-        this.address.setMaxLength(16);
+        this.address.setMaxLength(20);
         this.address.setHint(Component.translatable("faunamail.address"));
 
         var pla = item.player();

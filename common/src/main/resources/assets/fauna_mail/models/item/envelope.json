@@ -1,0 +1,14 @@
+{
+    "parent": "item/generated",
+    "textures": {
+        "layer0": "fauna_mail:item/open_envelope"
+    },
+    "overrides": [
+        {
+            "predicate": {
+                "fauna_mail:sealed": 0.5
+            },
+            "model": "fauna_mail:item/sealed_envelope"
+        }
+    ]
+}

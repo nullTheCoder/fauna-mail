@@ -1,6 +1,5 @@
 package org.antarcticgardens.faunamail.items.mail;
 
-import com.mojang.authlib.minecraft.client.MinecraftClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -8,6 +7,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -15,10 +15,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import org.antarcticgardens.faunamail.FaunaMail;
-import org.antarcticgardens.faunamail.client.MailOpeningScreen;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
+import org.antarcticgardens.faunamail.client.PacketSender;
 import org.antarcticgardens.faunamail.client.ScreenOpener;
 import org.antarcticgardens.faunamail.items.Components;
 import org.jetbrains.annotations.Nullable;
@@ -97,11 +97,23 @@ public class MailItem extends Item {
                 used = false;
             }
             if (level.isClientSide()) {
+                if (Boolean.TRUE.equals(sealed)) {
+                    var result = Minecraft.getInstance().hitResult;
+                    if (result != null && result.getType() == HitResult.Type.ENTITY && result instanceof EntityHitResult ent) {
+                        Entity entity = ent.getEntity();
+                        PacketSender.mail(entity.getId());
+                        return InteractionResultHolder.success(stack);
+                    }
+                }
+
                 ScreenOpener.open(this, stack.get(Components.TEXT), stack.get(Components.ADDRESS), stack.get(Components.PLAYER), used);
+                return InteractionResultHolder.success(stack);
             }
+            return InteractionResultHolder.success(stack);
         }
-        return super.use(level, player, usedHand);
     }
+
+
 
     public void open(Player player, ItemStack itemStack) {
         player.openMenu(new MenuProvider() {

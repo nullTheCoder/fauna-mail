@@ -4,10 +4,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import org.antarcticgardens.faunamail.InventoryPlaceUtil;
 import org.antarcticgardens.faunamail.items.Components;
+import org.antarcticgardens.faunamail.mailman.Mailman;
+import org.antarcticgardens.faunamail.mailman.MailmanRegister;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +51,7 @@ public class PacketReceiver {
     }
 
     public static void handle(ServerPlayer player, List<String> text, String address, String receiver) {
-        if (address.length() > 16 || receiver.length() > 16) {
+        if (address.length() > 20 || receiver.length() > 16) {
             return;
         }
         for (String s : text) {
@@ -82,4 +86,31 @@ public class PacketReceiver {
         }
     }
 
+    public static void mail(ServerPlayer player, int id) {
+        Entity entity = player.level().getEntity(id);
+        if (entity == null || entity.distanceTo(player) > 8) {
+            return;
+        }
+
+        ItemStack stack = player.getMainHandItem();
+        if (!(stack.getItem() instanceof MailItem)) {
+            stack = player.getOffhandItem();
+        }
+        if (!(stack.getItem() instanceof MailItem) || stack.getCount() > 1) {
+            return;
+        }
+        Boolean used = stack.get(Components.USED);
+        Boolean sealed = stack.get(Components.SEALED);
+        if ((used != null && used) || (sealed == null || !sealed)) {
+            return;
+        }
+
+        Mailman mailman = MailmanRegister.mailmanMap.get(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
+        if (mailman == null) {
+            return;
+        }
+
+
+
+    }
 }

@@ -3,8 +3,6 @@ package org.antarcticgardens.faunamail.items;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.Unit;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;

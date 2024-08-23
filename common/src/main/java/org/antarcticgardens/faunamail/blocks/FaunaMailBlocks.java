@@ -1,14 +1,17 @@
 package org.antarcticgardens.faunamail.blocks;
 
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import org.antarcticgardens.faunamail.blocks.mailbox.MailBoxBlock;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 public class FaunaMailBlocks {
 
-    public static List<Supplier<Block>> blocks = List.of(
-
+    public static List<MailboxTogetherStrong> mailboxes = List.of(
+        new MailboxTogetherStrong("wooden_mailbox", new MailBoxBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.LECTERN)))
     );
+
+    public record MailboxTogetherStrong(String id, MailBoxBlock block) {}
 
 }
