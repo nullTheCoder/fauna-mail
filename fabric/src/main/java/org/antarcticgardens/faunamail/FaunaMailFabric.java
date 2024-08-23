@@ -48,5 +48,10 @@ public class FaunaMailFabric implements ModInitializer {
             PacketReceiver.handle(context.player(), payload.text(), payload.address(), payload.player());
         });
 
+        PayloadTypeRegistry.playC2S().register(UnsealPayload.ID, UnsealPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(UnsealPayload.ID, (payload, context) -> {
+            PacketReceiver.unseal(context.player());
+        });
+
     }
 }

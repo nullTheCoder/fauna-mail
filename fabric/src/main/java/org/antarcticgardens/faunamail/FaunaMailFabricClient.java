@@ -22,6 +22,11 @@ public class FaunaMailFabricClient implements ClientModInitializer {
         }
         PacketSender.implementation = new PacketSender() {
             @Override
+            public void sendUnsealPacket_() {
+                ClientPlayNetworking.send(new UnsealPayload());
+            }
+
+            @Override
             public void sendSealPacket_(String[] text, String address, String player) {
                 ClientPlayNetworking.send(new SealPayload(Lists.newArrayList(text), address, player));
             }

@@ -13,6 +13,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import org.antarcticgardens.faunamail.items.mail.MailContainerMenu;
+import org.antarcticgardens.faunamail.items.mail.MailItem;
 
 public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
 
@@ -22,7 +23,7 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
             ResourceLocation.tryBuild("faunamail", "textures/gui/sign_focused.png")
     );
 
-    private static final WidgetSprites TURN_SPRITES = new WidgetSprites(
+    public static final WidgetSprites TURN_SPRITES = new WidgetSprites(
             ResourceLocation.tryBuild("faunamail", "textures/gui/turn.png"),
             ResourceLocation.tryBuild("faunamail", "textures/gui/turn_disabled.png"),
             ResourceLocation.tryBuild("faunamail", "textures/gui/turn_focused.png")
@@ -34,20 +35,22 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
     private Button turn;
     private Button seal;
 
-    private final EditBox[] text = new EditBox[2];
+    private EditBox[] text;
     private EditBox address;
     private EditBox recipient;
+    private final MailItem item;
 
     public MailScreen(MailContainerMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.playerInventory = playerInventory;
+        item = menu.container.getMailItem();
     }
 
     @Override
     protected void init() {
         super.init();
-        int i = (this.width - this.imageWidth) / 2;
-        int j = (this.height - this.imageHeight) / 2;
+        int i = (this.width - item.backgroundWidth()) / 2;
+        int j = (this.height - item.backgroundHeight()) / 2;
 
         turn = new ImageButton(i - 24, j - 24, 16, 16, TURN_SPRITES, button -> {
             back = !back;
@@ -61,7 +64,7 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
             }
         }, Component.translatable("faunamail.turn"));
 
-        seal = new ImageButton(i + 11, j - 24, this.imageWidth - 11, 12, SPRITES, button -> {
+        seal = new ImageButton(i + 11, j - 24, item.backgroundWidth() - 11, 12, SPRITES, button -> {
             if (address.getValue().isBlank() && recipient.getValue().isBlank()) {
                 return;
             }
@@ -73,28 +76,30 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
             PacketSender.sendSealPacket(text, address.getValue(), recipient.getValue());
         }, Component.translatable("faunamail.seal"));
 
-        this.text[0] = new EditBox(this.font, i + 11, j , this.imageWidth - 22, 12, Component.translatable("faunamail.message.line.1"));
-        this.text[0].setTextColor(0xffffff);
-        this.text[0].setTextColorUneditable(0x999999);
-        this.text[0].setMaxLength(24);
-        this.text[0].setHint(Component.translatable("faunamail.message.line.1"));
+        text = new EditBox[item.textRows().length];
 
-        this.text[1] = new EditBox(this.font, i + 11, j + 13, this.imageWidth - 22, 12, Component.translatable("faunamail.message.line.2"));
-        this.text[1].setTextColor(0xffffff);
-        this.text[1].setTextColorUneditable(0x999999);
-        this.text[1].setMaxLength(24);
-        this.text[1].setHint(Component.translatable("faunamail.message.line.2"));
+        int a = 0;
+        for (int[] tex : item.textRows()) {
+            this.text[a] = new EditBox(this.font, i + tex[0], j + tex[1], tex[2], tex[3], Component.translatable("faunamail.message.line." + a));
+            this.text[a].setTextColor(0xffffff);
+            this.text[a].setTextColorUneditable(0x999999);
+            this.text[a].setMaxLength(tex[4]);
+            this.text[a].setHint(Component.translatable("faunamail.message.line." + a));
+            a++;
+        }
 
-        this.address = new EditBox(this.font, i + 25, j + 50, this.imageWidth - 11 - 25, 12, Component.translatable("faunamail.address"));
+        var addr = item.address();
+        this.address = new EditBox(this.font, i + addr[0], j + addr[1], addr[2], addr[3], Component.translatable("faunamail.address"));
         this.address.setTextColor(0xffffff);
         this.address.setTextColorUneditable(0x999999);
-        this.address.setMaxLength(21);
+        this.address.setMaxLength(16);
         this.address.setHint(Component.translatable("faunamail.address"));
 
-        this.recipient = new EditBox(this.font, i + 25, j + 63, this.imageWidth - 11 - 25, 12, Component.translatable("faunamail.player"));
+        var pla = item.player();
+        this.recipient = new EditBox(this.font, i + pla[0], j + pla[1], pla[2], pla[3], Component.translatable("faunamail.player"));
         this.recipient.setTextColor(0xffffff);
         this.recipient.setTextColorUneditable(0x999999);
-        this.recipient.setMaxLength(21);
+        this.recipient.setMaxLength(16);
         this.recipient.setHint(Component.translatable("faunamail.player"));
 
         this.clearFocus();
@@ -105,8 +110,9 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
     public void addWidgets() {
         clearWidgets();
         if (this.back) {
-            this.addWidget(this.text[0]);
-            this.addWidget(this.text[1]);
+            for (var text : this.text) {
+                this.addWidget(text);
+            }
             this.addWidget(this.address);
             this.addWidget(this.recipient);
         } else {
@@ -116,13 +122,16 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
     }
 
     public void resize(Minecraft minecraft, int width, int height) {
-        String string = this.text[0].getValue();
-        String string2 = this.text[1].getValue();
+        String[] strings = new String[this.text.length];
+        for (int a = 0 ; a < strings.length ; a++) {
+            strings[a] = this.text[a].getValue();
+        }
         String address = this.address.getValue();
         String recipient = this.recipient.getValue();
         this.init(minecraft, width, height);
-        this.text[0].setValue(string);
-        this.text[1].setValue(string2);
+        for (int a = 0 ; a < strings.length ; a++) {
+            this.text[a].setValue(strings[a]);
+        }
         this.address.setValue(address);
         this.recipient.setValue(recipient);
     }
@@ -144,12 +153,10 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
         return true;
     }
 
-    protected int backgroundWidth = 176;
-    protected int backgroundHeight = 166;
     @Override
     protected void renderBg(GuiGraphics context, float partialTick, int mouseX, int mouseY) {
-        int x = (width - backgroundWidth) / 2;
-        int y = (height - backgroundHeight) / 2;
+        int x = (width - item.backgroundWidth()) / 2;
+        int y = (height - item.backgroundHeight()) / 2;
         //context.blitSprite(menu.container.getMailItem().BG(), x, y, backgroundWidth, backgroundHeight);
     }
 
@@ -174,8 +181,12 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
 
             this.renderTooltip(guiGraphics, mouseX, mouseY);
         } else {
-            text[0].render(guiGraphics, mouseX, mouseY, partialTick);
-            text[1].render(guiGraphics, mouseX, mouseY, partialTick);
+            this.renderTransparentBackground(guiGraphics);
+            this.renderBg(guiGraphics, partialTick, mouseX, mouseY);
+
+            for (EditBox editBox : text) {
+                editBox.render(guiGraphics, mouseX, mouseY, partialTick);
+            }
             address.render(guiGraphics, mouseX, mouseY, partialTick);
             recipient.render(guiGraphics, mouseX, mouseY, partialTick);
 

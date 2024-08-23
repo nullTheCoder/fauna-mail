@@ -15,6 +15,10 @@ public class Components {
             Codec.BOOL
     ).networkSynchronized(ByteBufCodecs.fromCodec(Codec.BOOL)).build();
 
+    public static DataComponentType<Boolean> USED = new DataComponentType.Builder<Boolean>().persistent(
+            Codec.BOOL
+    ).networkSynchronized(ByteBufCodecs.fromCodec(Codec.BOOL)).build();
+
     public static DataComponentType<List<ItemStack>> ITEMS = new DataComponentType.Builder<List<ItemStack>>().persistent(
             Codec.list(ItemStack.CODEC)
     ).build();

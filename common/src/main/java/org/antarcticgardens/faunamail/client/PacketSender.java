@@ -8,6 +8,12 @@ public abstract class PacketSender {
         implementation.sendSealPacket_(text, address, player);
     }
 
+    public static void sendUnsealPacket() {
+        implementation.sendUnsealPacket_();
+    }
+
+    public abstract void sendUnsealPacket_();
+
     public abstract void sendSealPacket_(String[] text, String address, String player);
 
 }

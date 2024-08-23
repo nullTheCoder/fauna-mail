@@ -63,7 +63,7 @@ public class MailContainerMenu extends AbstractContainerMenu {
                 slot.setChanged();
             }
         }
-        return ItemStack.EMPTY;
+        return newStack;
     }
 
     @Override
