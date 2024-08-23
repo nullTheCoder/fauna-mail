@@ -16,6 +16,7 @@ import org.antarcticgardens.faunamail.items.Items;
 import org.antarcticgardens.faunamail.items.mail.MailContainer;
 import org.antarcticgardens.faunamail.items.mail.MailContainerMenu;
 import org.antarcticgardens.faunamail.items.mail.MailItem;
+import org.antarcticgardens.faunamail.items.mail.PacketReceiver;
 
 import java.util.function.Supplier;
 
@@ -44,7 +45,7 @@ public class FaunaMailFabric implements ModInitializer {
 
         PayloadTypeRegistry.playC2S().register(SealPayload.ID, SealPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(SealPayload.ID, (payload, context) -> {
-            System.out.println("Got SealPayload " + payload);
+            PacketReceiver.handle(context.player(), payload.text(), payload.address(), payload.player());
         });
 
     }

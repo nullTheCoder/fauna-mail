@@ -47,10 +47,18 @@ public class MailItem extends Item {
         return 2;
     }
 
+    public int[][] textRowCoords() {
+        return new int[][] {
+                {11, 0},
+                {11, 13}
+        };
+    }
+
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
         ItemStack stack = player.getItemInHand(usedHand);
-        if (!stack.has(Components.SEALED)) {
+        Boolean sealed = stack.get(Components.SEALED);
+        if (sealed == null || !sealed) {
             if (!level.isClientSide()) {
                 open(player, stack);
             }
