@@ -3,6 +3,7 @@ package org.antarcticgardens.faunamail.blocks.mailbox;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.ContainerHelper;
@@ -10,13 +11,11 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.BarrelBlock;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import org.antarcticgardens.faunamail.items.Components;
 import org.antarcticgardens.faunamail.tracker.Names;
-import org.jetbrains.annotations.Nullable;
 
 public class MailBoxBlockEntity extends BaseContainerBlockEntity {
 
@@ -25,6 +24,8 @@ public class MailBoxBlockEntity extends BaseContainerBlockEntity {
     private final int size;
 
     public NonNullList<ItemStack> items;
+    private String name;
+
 
     public MailBoxBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -36,8 +37,6 @@ public class MailBoxBlockEntity extends BaseContainerBlockEntity {
             throw new IllegalArgumentException("Can't place mail box block entity on a non mailbox block");
         }
     }
-
-
 
     @Override
     public void startOpen(Player player) {
@@ -89,6 +88,7 @@ public class MailBoxBlockEntity extends BaseContainerBlockEntity {
 
     void updateBlockState(BlockState state) {
         this.level.setBlock(this.getBlockPos(), state, 3);
+
     }
 
     @Override
@@ -112,15 +112,46 @@ public class MailBoxBlockEntity extends BaseContainerBlockEntity {
     }
 
     @Override
+    public Component getName() {
+        return Component.literal(name);
+    }
+
+    @Override
+    protected void applyImplicitComponents(DataComponentInput componentInput) {
+        var cname = componentInput.get(DataComponents.CUSTOM_NAME);
+        if (cname != null) {
+            this.name = cname.getString();
+        }
+        super.applyImplicitComponents(componentInput);
+    }
+
+    private boolean generateOrTestForNewName = true;
+    @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        this.name = tag.getString("Name");
+        if (!name.isEmpty()) {
+            generateOrTestForNewName = false;
+        }
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         ContainerHelper.loadAllItems(tag, this.items, registries);
+    }
+
+    @Override
+    public void setLevel(Level level) {
+        super.setLevel(level);
+        if (generateOrTestForNewName) {
+            if (name == null || name.isEmpty()) {
+                name = Names.names.get(level.random.nextInt(Names.names.size())) + " " + level.random.nextInt(1, 700);
+            }
+            generateOrTestForNewName = false;
+        }
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         ContainerHelper.saveAllItems(tag, this.items, registries);
+        tag.putString("Name", name);
     }
 }
