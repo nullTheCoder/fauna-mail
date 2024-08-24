@@ -62,9 +62,7 @@ public class MailContainer implements Container {
 
     @Override
     public void setItem(int slot, ItemStack stack) {
-        if (canPlaceItem(slot, stack)) {
-            items.set(slot, stack);
-        }
+        items.set(slot, stack);
     }
 
     @Override

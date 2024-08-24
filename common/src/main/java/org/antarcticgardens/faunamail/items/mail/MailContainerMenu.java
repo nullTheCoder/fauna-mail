@@ -23,7 +23,12 @@ public class MailContainerMenu extends AbstractContainerMenu {
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
-                this.addSlot(new Slot(container, i + j * rows, i * 18, j * 18));
+                this.addSlot(new Slot(container, i + j * rows, i * 18, j * 18) {
+                    @Override
+                    public boolean mayPlace(ItemStack stack) {
+                        return container.canPlaceItem(index, stack);
+                    }
+                });
             }
         }
 

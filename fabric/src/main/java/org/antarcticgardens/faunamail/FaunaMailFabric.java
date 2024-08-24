@@ -2,32 +2,28 @@ package org.antarcticgardens.faunamail;
 
 import com.google.gson.Gson;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Tuple;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
 import org.antarcticgardens.faunamail.blocks.FaunaMailBlocks;
 import org.antarcticgardens.faunamail.blocks.mailbox.MailBoxBlock;
 import org.antarcticgardens.faunamail.blocks.mailbox.MailBoxBlockEntity;
 import org.antarcticgardens.faunamail.blocks.mailbox.MailBoxContainerMenu;
-import org.antarcticgardens.faunamail.client.MailBoxScreen;
 import org.antarcticgardens.faunamail.items.ComponentRegister;
 import org.antarcticgardens.faunamail.items.Items;
 import org.antarcticgardens.faunamail.items.mail.MailContainer;
@@ -36,6 +32,8 @@ import org.antarcticgardens.faunamail.items.mail.MailItem;
 import org.antarcticgardens.faunamail.items.mail.PacketReceiver;
 import org.antarcticgardens.faunamail.mailman.MailmanRegister;
 import org.antarcticgardens.faunamail.tracker.Names;
+import org.antarcticgardens.faunamail.tracker.StateManager;
+import org.antarcticgardens.faunamail.tracker.Ticker;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -47,6 +45,9 @@ import java.util.function.Supplier;
 public class FaunaMailFabric implements ModInitializer {
     @Override
     public void onInitialize() {
+
+        ServerLifecycleEvents.SERVER_STARTED.register((StateManager::setServerState));
+        ServerTickEvents.START_SERVER_TICK.register(Ticker::tick);
 
         for (Tuple<String, Supplier<DataComponentType<?>>> component : ComponentRegister.components) {
             Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,
@@ -69,17 +70,19 @@ public class FaunaMailFabric implements ModInitializer {
 
         PayloadTypeRegistry.playC2S().register(SealPayload.ID, SealPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(SealPayload.ID, (payload, context) -> {
-            PacketReceiver.handle(context.player(), payload.text(), payload.address(), payload.player());
+            context.server().execute(() ->PacketReceiver.handle(context.player(), payload.text(), payload.address(), payload.player()));
         });
 
         PayloadTypeRegistry.playC2S().register(UnsealPayload.ID, UnsealPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(UnsealPayload.ID, (payload, context) -> {
-            PacketReceiver.unseal(context.player());
+            context.server().execute(() ->
+                PacketReceiver.unseal(context.player())
+            );
         });
 
         PayloadTypeRegistry.playC2S().register(MailPayload.ID, MailPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(MailPayload.ID, (payload, context) -> {
-            PacketReceiver.mail(context.player(), payload.id());
+            context.server().execute(() ->PacketReceiver.mail(context.player(), payload.id()));
         });
 
         int i = 0;

@@ -1,7 +1,7 @@
 {
   "entity_id": "minecraft:chicken",
   "speed_bpt": 0.4,
-  "max_distance": 2000,
+  "max_distance": 10000,
 
   "returns": "NO",
   "return_journey_min_speed_multiplier": 1.2,
@@ -10,13 +10,13 @@
   "dimensional_travel_cost": -1,
   "can_locate_player": false,
   "can_locate_mailbox": true,
-
+  "bounds_growth": [0.4, 0.4],
   "movement": {
     "name": "fauna_main:fly_up_down",
     "distance": 4.0
   },
   "renderer": {
-    "name": "fauna_main:item",
+    "name": "fauna_main:item_display",
     "x": 0.3,
     "y": 0.5,
     "z": 0.0,

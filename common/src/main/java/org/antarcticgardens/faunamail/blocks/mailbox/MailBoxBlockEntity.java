@@ -1,11 +1,15 @@
 package org.antarcticgardens.faunamail.blocks.mailbox;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.TickingTracker;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -15,7 +19,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.antarcticgardens.faunamail.LevelBlockPos;
 import org.antarcticgardens.faunamail.tracker.Names;
+import org.antarcticgardens.faunamail.tracker.StateManager;
 
 public class MailBoxBlockEntity extends BaseContainerBlockEntity {
 
@@ -24,7 +30,7 @@ public class MailBoxBlockEntity extends BaseContainerBlockEntity {
     private final int size;
 
     public NonNullList<ItemStack> items;
-    private String name;
+    public String name;
 
 
     public MailBoxBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
@@ -88,7 +94,6 @@ public class MailBoxBlockEntity extends BaseContainerBlockEntity {
 
     void updateBlockState(BlockState state) {
         this.level.setBlock(this.getBlockPos(), state, 3);
-
     }
 
     @Override
@@ -140,10 +145,19 @@ public class MailBoxBlockEntity extends BaseContainerBlockEntity {
     @Override
     public void setLevel(Level level) {
         super.setLevel(level);
-        if (generateOrTestForNewName) {
+        if (level instanceof ServerLevel sl && generateOrTestForNewName) {
+            level.scheduleTick(getBlockPos(), getBlockState().getBlock(), 0);
+        }
+    }
+
+    public void testGen() {
+        if (generateOrTestForNewName && level instanceof ServerLevel serverLevel) {
             if (name == null || name.isEmpty()) {
-                name = Names.names.get(level.random.nextInt(Names.names.size())) + " " + level.random.nextInt(1, 700);
+                name = Names.getName(Names.names.get(level.random.nextInt(Names.names.size())), level.random.nextInt(1, 700));
+            } else {
+                name = Names.getName(name);
             }
+            StateManager.addMailbox(name, new LevelBlockPos(getBlockPos(), serverLevel));
             generateOrTestForNewName = false;
         }
     }
