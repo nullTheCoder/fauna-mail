@@ -63,8 +63,8 @@ public class FaunaMailFabric implements ModInitializer {
             mailItem.menu = Registry.register(BuiltInRegistries.MENU, "mail_screen_type_" + mailItem.getName(),
                     new MenuType<>(
                             (a, b) -> new MailContainerMenu(mailItem.menu, a, b,
-                                        new MailContainer(mailItem.rows(), mailItem.columns(), mailItem)
-                                    , mailItem.rows(), mailItem.columns()), FeatureFlagSet.of()
+                                        new MailContainer(mailItem.columns(), mailItem.rows(), mailItem)
+                                    , mailItem.columns(), mailItem.rows()), FeatureFlagSet.of()
                     ));
         }
 

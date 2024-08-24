@@ -5,8 +5,11 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
 import org.antarcticgardens.faunamail.InventoryPlaceUtil;
 import org.antarcticgardens.faunamail.items.Components;
@@ -51,11 +54,12 @@ public class PacketReceiver {
     }
 
     public static void handle(ServerPlayer player, List<String> text, String address, String receiver) {
-        if (address.length() > 20 || receiver.length() > 16) {
+        if (address.length() > 20 || receiver.length() > 16 || text.size() > 16) {
             return;
         }
+
         for (String s : text) {
-            if (s.length() > 16) {
+            if (s.length() > 48) {
                 return;
             }
         }
@@ -63,6 +67,7 @@ public class PacketReceiver {
         if (player.containerMenu instanceof MailContainerMenu menu) {
             ItemStack item = menu.selfItem;
             List<ItemStack> items = new ArrayList<>();
+
             for (ItemStack i : menu.container.items) {
                 if (!i.isEmpty()) {
                     items.add(i);
@@ -106,8 +111,13 @@ public class PacketReceiver {
         }
 
         Mailman mailman = MailmanRegister.mailmanMap.get(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
-        if (mailman == null) {
+        if (mailman == null || !(entity instanceof Mob mob)) {
+            player.displayClientMessage(Component.translatable("fauna_mail.not_a_mailman"), true);
             return;
+        }
+
+        if (mob.isNoAi()) {
+            player.displayClientMessage(Component.translatable("fauna_mail.already_busy"), true);
         }
 
 

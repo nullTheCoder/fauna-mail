@@ -21,9 +21,10 @@ public class MailContainerMenu extends AbstractContainerMenu {
         this.container = container;
         container.startOpen(player.player);
 
+        var pos = this.container.getMailItem().slotPositions();
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
-                this.addSlot(new Slot(container, i + j * rows, i * 18, j * 18) {
+                this.addSlot(new Slot(container, i + j * rows, i * 18 + pos[0], j * 18 + pos[1]) {
                     @Override
                     public boolean mayPlace(ItemStack stack) {
                         return container.canPlaceItem(index, stack);
@@ -44,7 +45,6 @@ public class MailContainerMenu extends AbstractContainerMenu {
         for (m = 0; m < 9; ++m) {
             this.addSlot(new Slot(player, m, 8 + m * 18, 142));
         }
-
     }
 
     @Override

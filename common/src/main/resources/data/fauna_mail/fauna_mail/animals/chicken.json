@@ -12,17 +12,17 @@
   "can_locate_mailbox": true,
   "bounds_growth": [0.4, 0.4],
   "movement": {
-    "name": "fauna_main:fly_up_down",
+    "name": "fauna_mail:fly_up_down",
     "distance": 4.0
   },
-  "renderer": {
-    "name": "fauna_main:item_display",
+  "display": {
+    "name": "fauna_mail:item_display",
     "x": 0.3,
     "y": 0.5,
     "z": 0.0,
     "scale": 1.0,
-    "rotX": 180,
-    "rotY": 0.0,
-    "rotZ": 0.0
+    "rot_x": 180.0,
+    "rot_y": 0.0,
+    "rot_z": 0.0
   }
 }

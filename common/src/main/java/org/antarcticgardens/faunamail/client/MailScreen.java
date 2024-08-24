@@ -17,17 +17,10 @@ import org.antarcticgardens.faunamail.items.mail.MailItem;
 
 public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
 
-    private static final WidgetSprites SPRITES = new WidgetSprites(
-            ResourceLocation.tryBuild("faunamail", "textures/gui/sign.png"),
-            ResourceLocation.tryBuild("faunamail", "textures/gui/sign_disabled.png"),
-            ResourceLocation.tryBuild("faunamail", "textures/gui/sign_focused.png")
-    );
+    private static WidgetSprites sealImage;
 
-    public static final WidgetSprites TURN_SPRITES = new WidgetSprites(
-            ResourceLocation.tryBuild("faunamail", "textures/gui/turn.png"),
-            ResourceLocation.tryBuild("faunamail", "textures/gui/turn_disabled.png"),
-            ResourceLocation.tryBuild("faunamail", "textures/gui/turn_focused.png")
-    );
+    public static WidgetSprites turnImage;
+
     private final Inventory playerInventory;
 
     private boolean back = true;
@@ -49,10 +42,25 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
     @Override
     protected void init() {
         super.init();
+
+        var images = item.sealImage();
+        sealImage = new WidgetSprites(
+                images[0],
+                images[2],
+                images[1]
+        );
+
+        images = item.flipImage();
+        turnImage = new WidgetSprites(
+                images[0],
+                images[2],
+                images[1]
+        );
+
         int i = (this.width - item.backgroundWidth()) / 2;
         int j = (this.height - item.backgroundHeight()) / 2;
 
-        turn = new ImageButton(i - 24, j - 24, 16, 16, TURN_SPRITES, button -> {
+        turn = new ImageButtonButBetter(i+ item.flip()[0], j + item.flip()[1], item.flip()[2], item.flip()[3], turnImage, button -> {
             back = !back;
             addWidgets();
             if (back) {
@@ -64,7 +72,7 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
             }
         }, Component.translatable("faunamail.turn"));
 
-        seal = new ImageButton(i + 11, j - 24, item.backgroundWidth() - 11, 12, SPRITES, button -> {
+        seal = new ImageButtonButBetter(i + item.seal()[0], j + item.seal()[1], item.seal()[2], item.seal()[3], sealImage, button -> {
             if (address.getValue().isBlank() && recipient.getValue().isBlank()) {
                 return;
             }
@@ -157,7 +165,11 @@ public class MailScreen extends AbstractContainerScreen<MailContainerMenu> {
     protected void renderBg(GuiGraphics context, float partialTick, int mouseX, int mouseY) {
         int x = (width - item.backgroundWidth()) / 2;
         int y = (height - item.backgroundHeight()) / 2;
-        //context.blitSprite(menu.container.getMailItem().BG(), x, y, backgroundWidth, backgroundHeight);
+        if (this.back) {
+            context.blit(menu.container.getMailItem().bgBack(), x, y, 0, 0, item.backgroundWidth(), item.backgroundHeight());
+        } else {
+            context.blit(menu.container.getMailItem().bgFront(), x, y, 0, 0, item.backgroundWidth(), item.backgroundHeight());
+        }
     }
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {

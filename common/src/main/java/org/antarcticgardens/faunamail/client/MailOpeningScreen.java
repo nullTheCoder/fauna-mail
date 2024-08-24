@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.antarcticgardens.faunamail.client.MailScreen.TURN_SPRITES;
+import static org.antarcticgardens.faunamail.client.MailScreen.turnImage;
 
 public class MailOpeningScreen extends Screen {
     private final MailItem item;
@@ -23,11 +23,8 @@ public class MailOpeningScreen extends Screen {
     private final boolean used;
     private boolean back = false;
 
-    private static final WidgetSprites SPRITES = new WidgetSprites(
-            ResourceLocation.tryBuild("faunamail", "textures/gui/sign.png"),
-            ResourceLocation.tryBuild("faunamail", "textures/gui/sign_disabled.png"),
-            ResourceLocation.tryBuild("faunamail", "textures/gui/sign_focused.png")
-    );
+    private static WidgetSprites unsealImage;
+    public static WidgetSprites turnImage;
 
     public MailOpeningScreen(MailItem item, @Nullable List<String> text, @Nullable String address, @Nullable String player, Boolean used) {
         super(Component.translatable("faunamail.opening_screen.title"));
@@ -48,6 +45,20 @@ public class MailOpeningScreen extends Screen {
             used = false;
         }
         this.used = used;
+
+        var images = item.unsealImage();
+        unsealImage = new WidgetSprites(
+                images[0],
+                images[2],
+                images[1]
+        );
+
+        images = item.flipImage();
+        turnImage = new WidgetSprites(
+                images[0],
+                images[2],
+                images[1]
+        );
     }
 
     @Override
@@ -65,14 +76,14 @@ public class MailOpeningScreen extends Screen {
         int i = (this.width - item.backgroundWidth()) / 2;
         int j = (this.height - item.backgroundHeight()) / 2;
 
-        turn = new ImageButton(i - 24, j - 24, 16, 16, TURN_SPRITES, button -> {
+        turn = new ImageButtonButBetter(i+ item.flip()[0], j + item.flip()[1], item.flip()[2], item.flip()[3], turnImage, button -> {
             back = !back;
             addWidgets();
             this.clearFocus();
             setFocused(turn);
         }, Component.translatable("faunamail.turn"));
 
-        unseal = new ImageButton(i + 11, j - 24, item.backgroundWidth() - 11, 12, SPRITES, button -> {
+        unseal = new ImageButtonButBetter(i + item.sealedSeal()[0], j + item.sealedSeal()[1], item.sealedSeal()[2], item.sealedSeal()[3], unsealImage, button -> {
             unseal.active = false;
             PacketSender.sendUnsealPacket();
         }, Component.translatable("faunamail.unseal"));
@@ -94,18 +105,23 @@ public class MailOpeningScreen extends Screen {
         int i = (this.width - item.backgroundWidth()) / 2;
         int j = (this.height - item.backgroundHeight()) / 2;
         if (this.back) {
+            guiGraphics.blit(item.bgBack(), i, j, 0, 0, item.backgroundWidth(), item.backgroundHeight());
+        } else {
+            guiGraphics.blit(item.bgFrontSealed(), i, j, 0, 0, item.backgroundWidth(), item.backgroundHeight());
+        }
+        if (this.back) {
             var text = item.textRows();
             for (int a = 0; a < text.length; a++) {
                 String str = "#UNKNOWN ;-;";
                 if (textStrings.size() > a) {
                     str = textStrings.get(a);
                 }
-                guiGraphics.drawString(this.font, str, i + text[a][0], j  + text[a][1], item.textColor());
+                guiGraphics.drawString(this.font, str, i + text[a][0], j  + text[a][1], item.textColor(), false);
             }
             var address = item.address();
-            guiGraphics.drawString(this.font, addressString, i + address[0], j  + address[1], item.textColor());
+            guiGraphics.drawString(this.font, addressString, i + address[0], j  + address[1], item.textColor(), false);
             var player = item.player();
-            guiGraphics.drawString(this.font, playerString, i + player[0], j  + player[1], item.textColor());
+            guiGraphics.drawString(this.font, playerString, i + player[0], j  + player[1], item.textColor(), false);
         } else {
             unseal.render(guiGraphics, mouseX, mouseY, partialTick);
         }

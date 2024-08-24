@@ -1,6 +1,8 @@
 package org.antarcticgardens.faunamail.mailman;
 
 import net.minecraft.resources.ResourceLocation;
+import org.antarcticgardens.faunamail.mailman.displays.ItemDisplayDisplay;
+import org.antarcticgardens.faunamail.mailman.displays.MailItemDisplay;
 import org.antarcticgardens.faunamail.mailman.movement.FlyUpDownMovement;
 import org.antarcticgardens.faunamail.mailman.movement.Movement;
 
@@ -11,7 +13,13 @@ public class MailmanRegister {
 
     public static Map<ResourceLocation, Movement.movementCreator> movements = new HashMap<>() {
         {
-            put(ResourceLocation.parse("fauna_main:fly_up_down"), FlyUpDownMovement::creator);
+            put(ResourceLocation.parse("fauna_mail:fly_up_down"), FlyUpDownMovement::creator);
+        }
+    };
+
+    public static Map<ResourceLocation, MailItemDisplay.displayCreator> displays = new HashMap<>() {
+        {
+            put(ResourceLocation.parse("fauna_mail:item_display"), ItemDisplayDisplay::creator);
         }
     };
 
@@ -65,11 +73,22 @@ public class MailmanRegister {
             throw new IllegalArgumentException("Invalid property 'movement'");
         }
 
-        Map<String, Object> renderer = (Map<String, Object>) json.get("renderer");
+        MailItemDisplay display;
+        if (json.get("display") instanceof Map) {
+            Map<String, Object> displayMap = (Map<String, Object>) json.get("display");
+            String name = displayMap.get("name").toString();
+            MailItemDisplay.displayCreator creator = displays.get(ResourceLocation.tryParse(name));
+            if (creator == null) {
+                throw new IllegalArgumentException("Invalid property 'display'");
+            }
+            display = creator.create(displayMap);
+        } else {
+            throw new IllegalArgumentException("Invalid property 'display'");
+        }
 
         registerMailman(
                 location,
-                new Mailman(speed_bpt, max_distance, returns, return_journey_min_speed_multiplier, return_journey_max_speed_multiplier, dimensional_travel_cost, can_locate_player, can_locate_mailbox, movement, renderer)
+                new Mailman(speed_bpt, max_distance, returns, return_journey_min_speed_multiplier, return_journey_max_speed_multiplier, dimensional_travel_cost, can_locate_player, can_locate_mailbox, movement, display)
         );
 
     }

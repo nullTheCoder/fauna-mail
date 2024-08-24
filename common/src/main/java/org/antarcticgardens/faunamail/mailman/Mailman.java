@@ -1,5 +1,7 @@
 package org.antarcticgardens.faunamail.mailman;
 
+import net.minecraft.world.entity.Mob;
+import org.antarcticgardens.faunamail.mailman.displays.MailItemDisplay;
 import org.antarcticgardens.faunamail.mailman.movement.Movement;
 
 import java.util.Map;
@@ -17,8 +19,10 @@ public record Mailman(
         boolean canLocateMailbox,
 
         Movement movement,
-        Map<String, Object> renderer
+        MailItemDisplay display
 
 ) {
+    public void begin(Mob mob) {
 
+    }
 }
