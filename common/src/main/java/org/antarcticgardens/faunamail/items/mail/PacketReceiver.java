@@ -6,6 +6,7 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,8 +14,10 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
 import org.antarcticgardens.faunamail.InventoryPlaceUtil;
 import org.antarcticgardens.faunamail.items.Components;
+import org.antarcticgardens.faunamail.mailman.Delivery;
 import org.antarcticgardens.faunamail.mailman.Mailman;
 import org.antarcticgardens.faunamail.mailman.MailmanRegister;
+import org.antarcticgardens.faunamail.tracker.StateManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,11 +119,14 @@ public class PacketReceiver {
             return;
         }
 
-        if (mob.isNoAi()) {
+        if (mob.isNoAi() || mob.isInvulnerable()) {
             player.displayClientMessage(Component.translatable("fauna_mail.already_busy"), true);
+            return;
         }
 
+        stack.shrink(1);
 
-
+        StateManager.addDelivery(new Delivery(mob, mailman, mob.blockPosition()));
+        player.displayClientMessage(Component.translatable("fauna_mail.sent"), true);
     }
 }

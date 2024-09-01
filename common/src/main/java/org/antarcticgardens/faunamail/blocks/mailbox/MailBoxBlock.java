@@ -74,7 +74,7 @@ public class MailBoxBlock extends Block implements EntityBlock {
     }
 
     public int[] slots() {
-        return new int[]{8, 18, 8, 3};
+        return new int[]{8, 18, 9, 3};
     }
 
     public String texture() {

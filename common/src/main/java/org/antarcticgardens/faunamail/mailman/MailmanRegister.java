@@ -46,7 +46,7 @@ public class MailmanRegister {
         if (json.get("returns") != null) {
             switch ((String) json.get("returns")) {
                 case "NO" -> returns = Returns.NO;
-                case "YES" -> returns = Returns.YES;
+                case "YES" -> {}
                 case "IF_TAMED" -> returns = Returns.IF_TAMED;
                 default -> throw new IllegalArgumentException("Invalid property 'returns'");
             }
@@ -88,7 +88,7 @@ public class MailmanRegister {
 
         registerMailman(
                 location,
-                new Mailman(speed_bpt, max_distance, returns, return_journey_min_speed_multiplier, return_journey_max_speed_multiplier, dimensional_travel_cost, can_locate_player, can_locate_mailbox, movement, display)
+                new Mailman(location, speed_bpt, max_distance, returns, return_journey_min_speed_multiplier, return_journey_max_speed_multiplier, dimensional_travel_cost, can_locate_player, can_locate_mailbox, movement, display)
         );
 
     }

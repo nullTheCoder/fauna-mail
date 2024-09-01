@@ -30,7 +30,7 @@ public class MailBoxBlockEntity extends BaseContainerBlockEntity {
     private final int size;
 
     public NonNullList<ItemStack> items;
-    public String name;
+    public String name = "";
 
 
     public MailBoxBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
@@ -82,10 +82,10 @@ public class MailBoxBlockEntity extends BaseContainerBlockEntity {
     }
 
     private void checkFullness() {
-        boolean full = true;
+        boolean full = false;
         for (int i = 0; i < getContainerSize(); i++) {
-            if (getItem(i).isEmpty()) {
-                full = false;
+            if (!getItem(i).isEmpty()) {
+                full = true;
                 break;
             }
         }

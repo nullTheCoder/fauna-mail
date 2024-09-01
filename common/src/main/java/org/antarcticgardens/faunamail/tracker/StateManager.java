@@ -7,8 +7,11 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 import org.antarcticgardens.faunamail.FaunaMail;
 import org.antarcticgardens.faunamail.LevelBlockPos;
+import org.antarcticgardens.faunamail.mailman.Delivery;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class StateManager extends SavedData {
@@ -54,7 +57,25 @@ public class StateManager extends SavedData {
         this.server = server;
     }
 
+    public static List<Delivery> getDeliveries() {
+        if (instance == null) {
+            FaunaMail.logger.info("Unable to retrieve deliveries this early.");
+            return new ArrayList<>();
+        }
+        return instance.deliveries;
+    }
+
+    public static void addDelivery(Delivery delivery) {
+        if (instance == null) {
+            FaunaMail.logger.info("Unable to add delivery this early");
+            return;
+        }
+        getInstance().deliveries.add(delivery);
+        getInstance().setDirty(true);
+    }
+
     public Map<String, LevelBlockPos> mailBoxes = new HashMap<>();
+    public List<Delivery> deliveries = new ArrayList<>();
 
     public static StateManager load(CompoundTag tag, HolderLookup.Provider registries, MinecraftServer server) {
         StateManager instance = new StateManager(server);
@@ -63,6 +84,23 @@ public class StateManager extends SavedData {
         for (String key : boxes.getAllKeys()) {
             instance.mailBoxes.put(key, LevelBlockPos.fromNbt(boxes.getCompound(key), server));
         }
+
+        var deliveries = tag.getCompound("deliveries");
+        for (String key : deliveries.getAllKeys()) {
+            var delivery = Delivery.getDeliveryFromNBT(deliveries.getCompound(key), server);
+            if (delivery == null) {
+                FaunaMail.logger.warn("Unable to load a delivery");
+                continue;
+            }
+            instance.deliveries.add(delivery);
+            try {
+                delivery.force();
+            } catch (Exception e) {
+                FaunaMail.logger.warn("Unable to force delivery", e);
+            }
+
+        }
+        FaunaMail.logger.info("Loaded {} deliveries", instance.deliveries.size());
 
         return instance;
     }
@@ -75,6 +113,15 @@ public class StateManager extends SavedData {
             boxesTag.put(key, mailBoxes.get(key).toNbt());
         }
         tag.put("mailboxes", boxesTag);
+
+        CompoundTag deliveriesTag = new CompoundTag();
+        int i = 0;
+        for (Delivery tracker : deliveries) {
+            deliveriesTag.put(String.valueOf(i), tracker.toTag());
+            i++;
+        }
+        tag.put("deliveries", deliveriesTag);
+        FaunaMail.logger.info("Saved {} deliveries", instance.deliveries.size());
 
         return tag;
     }
